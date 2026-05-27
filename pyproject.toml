@@ -1,7 +1,7 @@
 [project]
-name = "gigrator"
+name = "gitporter"
 version = "0.1.1"
-description = "Gigrator 是一个 Git 代码仓批量迁移工具"
+description = "GitPorter 是一个 Git 代码仓批量迁移工具"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-gigrator = "gigrator.cli:main"
+gitporter = "gitporter.cli:main"
 
 [[tool.uv.index]]
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"

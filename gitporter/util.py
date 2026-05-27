@@ -1,6 +1,6 @@
 """
-author: K8sCat <k8scat@gmail.com>
-link: https://github.com/k8scat/gigrator.git
+author: Adsryen <prl1594959462@gmail.com>
+link: https://github.com/Adsryen/GitPorter.git
 """
 import subprocess
 import sys

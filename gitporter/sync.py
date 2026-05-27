@@ -1,8 +1,8 @@
 """
-author: K8sCat <k8scat@gmail.com>
-link: https://github.com/k8scat/gigrator.git
+author: Adsryen <prl1594959462@gmail.com>
+link: https://github.com/Adsryen/GitPorter.git
 """
-from gigrator.config import load_config, prepare_migrate
+from gitporter.config import load_config, prepare_migrate
 
 
 def run_sync(cfg_file: str):

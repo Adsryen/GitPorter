@@ -1,6 +1,6 @@
 """
-author: K8sCat <k8scat@gmail.com>
-link: https://github.com/k8scat/gigrator.git
+author: Adsryen <prl1594959462@gmail.com>
+link: https://github.com/Adsryen/GitPorter.git
 """
 import os
 import re
@@ -59,7 +59,7 @@ class Git:
         self.clone_dir = config.get("clone_dir", "")
         if not self.clone_dir:
             self.clone_dir = os.path.join(os.getcwd(),
-                                          ".gigrator",
+                                          ".gitporter",
                                           self.provider)
         else:
             self.clone_dir = os.path.join(self.clone_dir,
