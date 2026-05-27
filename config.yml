@@ -2,10 +2,29 @@ migrate:
   from: github
   to: gitee
   clone_dir: ""
+  # git clone 额外参数（全局生效，也可在各 provider 下单独设置覆盖）
+  # clone_args:
+  #   - "--depth"
+  #   - "1"
+  #   - "--filter=blob:none"
+  # git push 额外参数
+  # push_args:
+  #   - "--force"
   # 默认迁移所有代码仓，可以设置 repos 迁移特定的代码仓
   # repos:
   #   - repo_a
   #   - repo_b
+  # 排除不需要迁移的代码仓（支持通配符）
+  # * 匹配任意字符，? 匹配单个字符
+  # 例如:
+  #   "test_*"        排除所有 test_ 开头的仓库
+  #   "*_backup"      排除所有 _backup 结尾的仓库
+  #   "archived-*"    排除所有 archived- 开头的仓库
+  #   "my-repo"       精确排除某个仓库
+  # exclude_repos:
+  #   - test_*
+  #   - *_backup
+  #   - archived-*
 
 gitee:
   provider: gitee

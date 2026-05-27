@@ -66,16 +66,22 @@ class Git:
                                           self.provider)
         os.makedirs(self.clone_dir, exist_ok=True)
 
+        # git clone 额外参数，例如 ["--depth", "1", "--filter=blob:none"]
+        self.clone_args = config.get("clone_args", [])
+        # git push 额外参数，例如 ["--force"]
+        self.push_args = config.get("push_args", [])
+
     def _https_prefix_auth(self) -> str:
         parts = self.https_prefix.split("://")
         schema = parts[0]
         domain = parts[1]
         return f"{schema}://{self.token_user}:{self.token}@{domain}"
 
-    def clone_repo(self, repo_name: str, repo_owner: str = "") -> str:
+    def clone_repo(self, repo_name: str, repo_owner: str = "") -> tuple:
+        """Returns (repo_dir, error_msg). On success error_msg is empty, on failure repo_dir is None."""
         if not repo_owner:
             repo_owner = self.username
-        
+
         repo_path = f"{repo_owner}/{repo_name}"
         clone_dir = os.path.join(self.clone_dir, repo_owner)
         os.makedirs(clone_dir, exist_ok=True)
@@ -84,25 +90,26 @@ class Git:
         if self.use_https:
             remote_addr = f"{self.https_prefix_auth}/{repo_path}.git"
 
-        clone_cmd = ["git", "clone", "--bare", remote_addr]
+        clone_cmd = ["git", "clone", "--bare", "--progress"] + self.clone_args + [remote_addr]
         print(clone_cmd)
-        
+
         repo_dir = os.path.join(clone_dir, repo_name + ".git")
         if os.path.exists(repo_dir):
             shutil.rmtree(repo_dir)
-        
+
         ret = subprocess.run(args=clone_cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              encoding="utf-8",
                              cwd=clone_dir)
         if ret.returncode == 0:
-            return repo_dir
-        
-        print(ret.stderr, end='')
-        return None
+            return repo_dir, ""
 
-    def push_repo(self, repo_name: str, repo_dir: str, repo_owner: str = "") -> bool:
+        error_msg = ret.stderr.strip() if ret.stderr else f"git clone exited with code {ret.returncode}"
+        return None, error_msg
+
+    def push_repo(self, repo_name: str, repo_dir: str, repo_owner: str = "") -> tuple:
+        """Returns (success, error_msg). On success error_msg is empty."""
         if not repo_owner:
             repo_owner = self.username
         remote_addr = f"{self.ssh_prefix}:{repo_owner}/{repo_name}.git"
@@ -110,16 +117,17 @@ class Git:
         if self.use_https:
             remote_addr = f"{self.https_prefix_auth}/{repo_owner}/{repo_name}.git"
 
-        clone_cmd = ["git", "push", "--mirror", remote_addr]
-        ret = subprocess.run(args=clone_cmd,
+        push_cmd = ["git", "push", "--mirror", "--progress"] + self.push_args + [remote_addr]
+        ret = subprocess.run(args=push_cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              encoding="utf-8",
                              cwd=repo_dir)
         if ret.returncode == 0:
-            return True
-        print(ret.stderr, end='')
-        return False
+            return True, ""
+
+        error_msg = ret.stderr.strip() if ret.stderr else f"git push exited with code {ret.returncode}"
+        return False, error_msg
 
     def list_repos(self) -> list:
         raise NotImplementedError
