@@ -1,9 +1,9 @@
 """
-author: K8sCat <k8scat@gmail.com>
-link: https://github.com/k8scat/gigrator.git
+author: Adsryen <prl1594959462@gmail.com>
+link: https://github.com/Adsryen/GitPorter.git
 """
-from gigrator.util import git_version
-from gigrator.sync import run_sync
+from gitporter.util import git_version
+from gitporter.sync import run_sync
 import argparse
 
 
