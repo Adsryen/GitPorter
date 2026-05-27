@@ -2,31 +2,13 @@
 author: K8sCat <k8scat@gmail.com>
 link: https://github.com/k8scat/gigrator.git
 """
-from gigrator.util import git_version
 from gigrator.config import load_config, prepare_migrate
-import argparse
 
 
-def precheck():
-    git_version()
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Git repositories migration tool.")
-    parser.add_argument("-c", "--config", dest="cfg_file", default="./config.yml",
-                        help="config file (default: ./config.yml)")
-    args = parser.parse_args()
-    return args
-
-
-def main():
-    args = parse_args()
-    cfg = load_config(args.cfg_file)
-
-    precheck()
-
+def run_sync(cfg_file: str):
+    cfg = load_config(cfg_file)
     from_git, to_git, repos = prepare_migrate(cfg)
+
     success_count = 0
     fail_count = 0
     for repo in repos:
@@ -59,7 +41,3 @@ def main():
             fail_count += 1
 
     print(f"\nMigration finished: {success_count} succeeded, {fail_count} failed, {len(repos)} total")
-
-
-if __name__ == "__main__":
-    main()

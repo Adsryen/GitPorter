@@ -4,7 +4,7 @@ link: https://github.com/k8scat/gigrator.git
 """
 
 import requests
-from gigrator.git.git import Git
+from gigrator.git.base import Git
 
 
 class Coding(Git):

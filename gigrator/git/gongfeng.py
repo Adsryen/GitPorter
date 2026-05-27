@@ -4,7 +4,7 @@ link: https://github.com/k8scat/gigrator.git
 """
 from urllib.parse import urlencode
 import requests
-from gigrator.git.git import Git
+from gigrator.git.base import Git
 
 
 class GF(Git):
