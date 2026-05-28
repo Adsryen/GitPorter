@@ -1,118 +1,96 @@
-# GitPorter CLI 增强计划
+# GitPorter 开发计划
 
-## 背景
+## 已完成
 
-当前所有功能压在一个命令 `gitporter -c config.yml` 里，用户需要手写 YAML 配置、无法预览同步结果、无进度反馈。
-目标：降低使用门槛，让无经验用户也能独立完成配置和同步。
+1. ~~**项目结构重构** — 文件拆分，解耦~~ ✅
+2. ~~**`config` 子命令** — 交互式生成配置，`--show` 脱敏查看~~ ✅
+3. ~~**`list` 子命令** — 列出仓库，支持 `--filter` / `--exclude` 过滤~~ ✅
+4. ~~**`sync --dry-run`** — 预览模式 + 确认提示~~ ✅
+5. ~~**进度条** — rich 进度条，成功/失败颜色区分~~ ✅
+6. ~~**增量同步** — 自动判断 clone / fetch，`--force-reclone` 强制重建~~ ✅
 
 ---
 
-## TODO 列表
+## 待开发
 
-### 1. `gitporter config` — 交互式生成/修改配置
+### 7. 容器化适配
 
-**目标**：用户不用手写 YAML，通过问答引导完成配置。
+**目标**：提供开箱即用的 Docker 运行方式，用户无需安装 Python 环境，挂载配置文件即可运行。
 
 **实现方案**：
-- 新增命令：`gitporter config`（无参数时进入交互向导）
-- `gitporter config --show` 查看当前配置（脱敏显示 token）
-- 交互流程：选源平台 → 填认证信息 → 选目标平台 → 填认证信息 → 确认生成
-- 支持修改已有配置：检测到 config.yml 已存在时询问是新建还是编辑
-- **不需要额外依赖**，用 `input()` 实现，简单够用
 
-**涉及文件**：
-- 新建 `gitporter/commands/config_cmd.py`
-- 修改 `gitporter/cli.py` — 添加子命令路由
+#### Dockerfile
+- 基础镜像：`python:3.11-slim`（平衡体积与兼容性）
+- 安装系统依赖：`git`
+- 安装 Python 依赖：`pip install -r requirements.txt`
+- 入口：`ENTRYPOINT ["gitporter"]`，CMD 默认 `["sync"]`
+- 工作目录：`/app`，配置文件通过 `-v` 挂载
 
----
-
-### 2. `gitporter list` — 列出仓库，支持过滤
-
-**目标**：配完后先确认"我有哪些仓库"，不用真的跑同步。
-
-**实现方案**：
-- 新增命令：`gitporter list [-c config.yml]`
-- `--filter "test_*"` — 只显示匹配的仓库（复用 `fnmatch`）
-- `--exclude "archived-*"` — 排除匹配的仓库（复用 `exclude_repos` 逻辑）
-- `--target` — 同时显示目标端已有仓库（标记哪些会跳过）
-- 输出表格格式：序号、仓库名、是否已存在于目标
-
-**涉及文件**：
-- 新建 `gitporter/commands/list_cmd.py`
-- 复用 `config.py` 的 `prepare_migrate` 逻辑（拆出公共部分）
-
----
-
-### 3. `gitporter sync --dry-run` — 预览模式 + 确认提示
-
-**目标**：执行前告诉用户"我会做什么"，不真的动任何东西。
-
-**实现方案**：
-- `gitporter sync [-c config.yml]` — 正常同步（兼容原来的 `gitporter -c config.yml`）
-- `gitporter sync --dry-run` — 只打印计划，不执行
-- `--yes` / `-y` — 跳过确认直接执行（适合 CI 场景）
-- 预览输出：
-  ```
-  将同步 428 个仓库（已排除 6 个）:
-    repo_a, repo_b, repo_c ...
-  跳过的仓库（匹配 exclude_repos）:
-    test_foo (test_*), archived-bar (archived-*)
-  确认执行？[y/N]
-  ```
-- 无 `--yes` 且非 TTY 时（CI 环境）直接跳过确认
-
-**涉及文件**：
-- 修改 `gitporter/sync.py` — 添加 dry-run 逻辑
-- 修改 `gitporter/cli.py` — 添加 --dry-run / --yes 参数
-
----
-
-### 4. 进度条 — 同步过程可视化
-
-**目标**：500 个仓库同步时能看到进度，知道跑到第几个、当前是哪个。
-
-**实现方案**：
-- 新增依赖：`rich`（终端渲染库，支持进度条、表格、颜色）
-- 同步时显示：`Syncing repos: ████████░░░░░░░░ 42/428 [repo_name]`
-- 成功/失败用颜色区分（绿色/红色）
-- 非 TTY 环境（CI/管道）自动降级为普通 print 输出
-
-**涉及文件**：
-- 修改 `pyproject.toml` — 添加 `rich` 依赖
-- 修改 `gitporter/sync.py` — 进度条集成
-
----
-
-## 子命令结构设计
-
-```
-gitporter config              # 交互式生成配置
-gitporter config --show       # 查看当前配置（脱敏）
-gitporter list                # 列出源端所有仓库
-gitporter list --filter "x"   # 过滤显示
-gitporter list --exclude "x"  # 排除显示
-gitporter sync                # 执行同步（兼容 gitporter -c config.yml）
-gitporter sync --dry-run      # 预览，不执行
-gitporter sync --yes          # 跳过确认
-gitporter -c /path/to/config  # 指定配置文件（所有子命令通用）
+```dockerfile
+FROM python:3.11-slim
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+RUN pip install --no-cache-dir -e .
+ENTRYPOINT ["gitporter"]
+CMD ["sync", "-y"]
 ```
 
-向后兼容：`gitporter -c config.yml`（无子命令）等价于 `gitporter sync -c config.yml`。
+#### docker-compose.yml
+- 挂载本地 `config.yml` 到容器内 `/app/config.yml`
+- 挂载本地缓存目录到容器内 `.gitporter/`（增量同步复用本地缓存）
+- 支持通过环境变量覆盖配置（可选）
 
-## 实施顺序
+```yaml
+services:
+  gitporter:
+    build: .
+    volumes:
+      - ./config.yml:/app/config.yml
+      - ./.gitporter:/app/.gitporter
+```
 
-1. ~~**项目结构重构** — 文件拆分，解耦~~ ✅ 已完成
-2. **`config` 子命令** — 降低首次使用门槛
-3. **`list` 子命令** — 让用户确认仓库列表
-4. **`sync --dry-run`** — 安全预览
-5. **进度条** — 添加 `rich` 依赖，替换 sync 中的 print 输出
+#### 运行方式
+```bash
+# 构建镜像
+docker build -t gitporter .
 
-## 新增依赖
+# 一次性同步
+docker run --rm -v $(pwd)/config.yml:/app/config.yml gitporter sync -y
 
-```toml
-dependencies = [
-    "pyyaml>=6.0.3",
-    "requests>=2.32.5",
-    "rich>=13.0",        # 进度条 + 表格 + 颜色输出
-]
+# 使用 docker-compose
+docker-compose run --rm gitporter
+
+# 定时同步（配合 crontab）
+0 2 * * * docker-compose -f /path/to/docker-compose.yml run --rm gitporter
+```
+
+**涉及文件**：
+- 新建 `Dockerfile`
+- 新建 `docker-compose.yml`
+- 新建 `.dockerignore`
+- 更新 `README.md` — 补充 Docker 使用说明
+
+---
+
+## 命令结构（当前）
+
+```
+gitporter config                    交互式生成配置
+gitporter config --show             查看当前配置（token 脱敏）
+gitporter config -o /path/to/cfg    指定输出路径
+
+gitporter list                      列出源端所有仓库
+gitporter list --filter "pattern"   只显示匹配的仓库
+gitporter list --exclude "pattern"  排除匹配的仓库
+
+gitporter sync                      执行同步（自动判断全量/增量）
+gitporter sync --dry-run            预演，不实际执行
+gitporter sync -y                   跳过确认
+gitporter sync --force-reclone      强制全量重新克隆
+
+所有命令支持 -c 指定配置文件：
+gitporter sync -c /path/to/config.yml
 ```
