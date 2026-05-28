@@ -77,8 +77,13 @@ class Git:
         domain = parts[1]
         return f"{schema}://{self.token_user}:{self.token}@{domain}"
 
-    def clone_repo(self, repo_name: str, repo_owner: str = "") -> tuple:
-        """Returns (repo_dir, error_msg). On success error_msg is empty, on failure repo_dir is None."""
+    def clone_repo(self, repo_name: str, repo_owner: str = "", force_reclone: bool = False) -> tuple:
+        """Returns (repo_dir, error_msg, action).
+
+        action 为 'clone' 或 'fetch'，表示实际执行的操作。
+        成功时 error_msg 为空，失败时 repo_dir 为 None。
+        若本地 bare 仓库已存在且 force_reclone=False，自动切换为 fetch 增量更新。
+        """
         if not repo_owner:
             repo_owner = self.username
 
@@ -90,22 +95,41 @@ class Git:
         if self.use_https:
             remote_addr = f"{self.https_prefix_auth}/{repo_path}.git"
 
-        clone_cmd = ["git", "clone", "--bare", "--progress"] + self.clone_args + [remote_addr]
-        print(clone_cmd)
-
         repo_dir = os.path.join(clone_dir, repo_name + ".git")
+
+        # 本地已有缓存且不强制重新克隆 → 增量 fetch
+        if os.path.exists(repo_dir) and not force_reclone:
+            repo_dir, error_msg = self._fetch_repo(repo_dir, remote_addr)
+            return repo_dir, error_msg, "fetch"
+
+        # 首次或强制重新克隆
         if os.path.exists(repo_dir):
             shutil.rmtree(repo_dir)
 
+        clone_cmd = ["git", "clone", "--bare", "--progress"] + self.clone_args + [remote_addr]
         ret = subprocess.run(args=clone_cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              encoding="utf-8",
                              cwd=clone_dir)
         if ret.returncode == 0:
-            return repo_dir, ""
+            return repo_dir, "", "clone"
 
         error_msg = ret.stderr.strip() if ret.stderr else f"git clone exited with code {ret.returncode}"
+        return None, error_msg, "clone"
+
+    def _fetch_repo(self, repo_dir: str, remote_addr: str) -> tuple:
+        """对已有 bare 仓库执行增量 fetch。Returns (repo_dir, error_msg)."""
+        fetch_cmd = ["git", "fetch", "--prune", "--progress", remote_addr, "+refs/*:refs/*"]
+        ret = subprocess.run(args=fetch_cmd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             encoding="utf-8",
+                             cwd=repo_dir)
+        if ret.returncode == 0:
+            return repo_dir, ""
+
+        error_msg = ret.stderr.strip() if ret.stderr else f"git fetch exited with code {ret.returncode}"
         return None, error_msg
 
     def push_repo(self, repo_name: str, repo_dir: str, repo_owner: str = "") -> tuple:

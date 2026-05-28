@@ -19,7 +19,7 @@ def _confirm(prompt: str) -> bool:
         return False
 
 
-def run_sync(cfg_file: str, dry_run: bool = False, yes: bool = False):
+def run_sync(cfg_file: str, dry_run: bool = False, yes: bool = False, force_reclone: bool = False):
     cfg = load_config(cfg_file)
     from_git, to_git, repos = prepare_migrate(cfg)
 
@@ -61,9 +61,13 @@ def run_sync(cfg_file: str, dry_run: bool = False, yes: bool = False):
             progress.update(task, description=f"[cyan]{repo_name}[/cyan]")
 
             try:
-                repo_dir, clone_err = from_git.clone_repo(repo_name, repo_owner=repo.get("owner", ""))
+                repo_dir, clone_err, action = from_git.clone_repo(
+                    repo_name,
+                    repo_owner=repo.get("owner", ""),
+                    force_reclone=force_reclone,
+                )
                 if not repo_dir:
-                    console.print(f"[red][FAIL][/red] clone [bold]{repo_name}[/bold]: {clone_err}")
+                    console.print(f"[red][FAIL][/red] {action} [bold]{repo_name}[/bold]: {clone_err}")
                     fail_count += 1
                     progress.advance(task)
                     continue
@@ -84,7 +88,7 @@ def run_sync(cfg_file: str, dry_run: bool = False, yes: bool = False):
 
                 ok, push_err = to_git.push_repo(repo_name, repo_dir)
                 if ok:
-                    console.print(f"[green][OK][/green]   push [bold]{repo_name}[/bold]")
+                    console.print(f"[green][OK][/green]   {action}+push [bold]{repo_name}[/bold]")
                     success_count += 1
                 else:
                     console.print(f"[red][FAIL][/red] push [bold]{repo_name}[/bold]: {push_err}")
