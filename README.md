@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/github/license/Adsryen/GitPorter" />
   </a>
   <a href="https://www.python.org/">
-    <img src="https://img.shields.io/badge/python-3.13+-blue" />
+    <img src="https://img.shields.io/badge/python-3.8+-blue" />
   </a>
 </p>
 
