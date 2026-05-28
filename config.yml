@@ -44,7 +44,7 @@ github:
   use_https: true
 
 gitlab:
-  provider": gitlab
+  provider: gitlab
   base_api: https://gitlab.com/api/v4
   ssh_prefix: git@gitlab.com
   https_prefix: https://gitlab.com
