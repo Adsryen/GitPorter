@@ -36,6 +36,8 @@ def main():
                              help="Skip confirmation prompt")
     sync_parser.add_argument("--force-reclone", action="store_true",
                              help="Force full re-clone even if local cache exists")
+    sync_parser.add_argument("--select", action="store_true",
+                             help="Interactively select repos to sync (supports 1,3,5 or 3-8)")
 
     list_parser = subparsers.add_parser("list", help="List repositories from source")
     list_parser.add_argument("-c", "--config", dest="cfg_file", default="./config.yml")
@@ -64,7 +66,8 @@ def main():
     if args.command == "sync":
         precheck()
         from gitporter.sync import run_sync
-        run_sync(args.cfg_file, dry_run=args.dry_run, yes=args.yes, force_reclone=args.force_reclone)
+        run_sync(args.cfg_file, dry_run=args.dry_run, yes=args.yes,
+                 force_reclone=args.force_reclone, select=args.select)
 
     elif args.command == "list":
         from gitporter.commands.list_cmd import run_list
