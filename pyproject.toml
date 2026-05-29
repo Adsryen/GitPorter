@@ -1,14 +1,40 @@
 [project]
 name = "gitporter"
 version = "1.0.1"
-description = "GitPorter 是一个 Git 代码仓批量迁移工具"
+description = "Git 代码仓批量迁移 & 持续同步工具，支持 GitHub/Gitee/GitLab/Gitea/Coding 等平台"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.8"
+keywords = ["git", "migration", "sync", "github", "gitee", "gitlab", "gitea", "backup"]
+authors = [
+    {name = "Adsryen", email = "prl1594959462@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: Utilities",
+]
 dependencies = [
     "pyyaml>=6.0.3",
     "requests>=2.32.5",
     "rich>=13.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Adsryen/GitPorter"
+Repository = "https://github.com/Adsryen/GitPorter"
+Issues = "https://github.com/Adsryen/GitPorter/issues"
 
 [project.scripts]
 gitporter = "gitporter.cli:main"
@@ -19,3 +45,6 @@ include = ["gitporter*"]
 [[tool.uv.index]]
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 default = true
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]

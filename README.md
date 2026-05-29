@@ -119,7 +119,7 @@ gitporter config
 
 按照交互向导填写源平台和目标平台的认证信息，自动生成 `config.yml`。
 
-也可以直接复制 [config.yml](./config.yml) 手动编辑。
+也可以直接复制 [config.yml.example](./config.yml.example) 手动编辑。
 
 ### 2. 查看配置（可选，token 自动脱敏）
 
@@ -127,28 +127,42 @@ gitporter config
 gitporter config --show
 ```
 
-### 3. 预览将要同步的仓库
+### 3. 校验配置
 
 ```bash
-gitporter list
-gitporter list --filter "my-*"       # 只看 my- 开头的仓库
-gitporter list --exclude "archived-*" # 排除 archived- 开头的仓库
+gitporter config --validate    # 结构 → API 连通 → Git 连通 三层校验
 ```
 
-### 4. 预演一遍，不实际执行
+### 4. 查看仓库列表
+
+```bash
+gitporter list                          # 列出所有仓库
+gitporter list --filter "my-*"          # 只看 my- 开头的仓库
+gitporter list --exclude "archived-*"   # 排除 archived- 开头的仓库
+gitporter list --search hugo            # 关键词搜索（匹配仓库名和描述）
+gitporter list --limit 20               # 只看前 20 个
+gitporter list --status                 # 显示同步状态（✓ 已同步 / - 未同步）
+```
+
+交互模式下按 `s` 可切换排序方式（按名称 / 最近推送 / 最近更新 / 创建时间）。
+
+### 5. 预演一遍，不实际执行
 
 ```bash
 gitporter sync --dry-run
 ```
 
-### 5. 执行同步
+### 6. 执行同步
 
 ```bash
-gitporter sync           # 交互确认后执行
-gitporter sync -y        # 跳过确认直接执行（适合脚本/CI）
+gitporter sync                      # 交互确认后执行
+gitporter sync -y                   # 跳过确认（适合脚本/CI）
+gitporter sync --select             # 交互式选择仓库（支持搜索、范围选择）
+gitporter sync --repos repo1,repo2  # 命令行直接指定仓库名
+gitporter sync --workers 4          # 4 线程并行同步
+gitporter sync --retry              # 只重试上次失败的仓库
+gitporter sync --force-reclone      # 强制全量重新克隆（忽略本地缓存）
 ```
-
-> 首次运行全量克隆，后续自动切换为增量 fetch，无需手动区分。
 
 ## 配置文件说明
 
@@ -196,22 +210,33 @@ gitee:
 ## 命令参考
 
 ```
-gitporter config                    生成/查看配置文件
-gitporter config --show             查看当前配置（token 脱敏显示）
-gitporter config -o /path/to/cfg    指定输出路径
+gitporter config                        交互式生成配置文件
+gitporter config --show                 查看当前配置（token 脱敏显示）
+gitporter config --validate             校验配置（结构 + API 连通 + Git 连通）
+gitporter config -c path/to/config.yml  指定配置文件路径
 
-gitporter list                      列出源端所有仓库
-gitporter list --filter "pattern"   只显示匹配的仓库
-gitporter list --exclude "pattern"  排除匹配的仓库
+gitporter list                          列出源端所有仓库
+gitporter list --filter "pattern"       通配符过滤（* 匹配任意，? 匹配单个）
+gitporter list --exclude "pattern"      通配符排除
+gitporter list --search keyword         关键词搜索（匹配仓库名和描述）
+gitporter list --limit N                只显示前 N 个仓库
+gitporter list --status                 显示同步状态（已同步/未同步）
+# 交互模式下按 s 切换排序：按名称 → 最近推送 → 最近更新 → 创建时间
 
-gitporter sync                      执行同步（自动判断全量/增量）
-gitporter sync --dry-run            预演，不实际执行
-gitporter sync -y                   跳过确认
-gitporter sync --force-reclone      强制全量重新克隆（忽略本地缓存）
+gitporter sync                          执行同步（自动判断全量/增量）
+gitporter sync --dry-run                预演，不实际执行
+gitporter sync -y                       跳过确认
+gitporter sync --select                 交互式选择仓库（支持搜索、范围）
+gitporter sync --repos repo1,repo2      命令行直接指定仓库名
+gitporter sync --workers N              N 线程并行同步
+gitporter sync --retry                  只重试上次失败的仓库
+gitporter sync --force-reclone          强制全量重新克隆（忽略本地缓存）
 
 所有命令均支持 -c 指定配置文件路径：
 gitporter sync -c /path/to/config.yml
 ```
+
+> 首次运行全量克隆，后续自动切换为增量 fetch，无需手动区分。同步完成后会显示总耗时。
 
 ## 注意事项
 
@@ -242,15 +267,20 @@ class MyGit(Git):
 
 本项目 Fork 自 [k8scat/Gigrator](https://github.com/k8scat/Gigrator)，在原项目基础上做了以下优化：
 
-- **增量同步**：本地缓存已存在时自动切换为 `git fetch`，首次全量、后续增量，无需手动区分
-- **子命令架构**：新增 `config`、`list`、`sync` 子命令，降低使用门槛
-- **交互式配置**：`gitporter config` 引导式生成配置文件，无需手写 YAML
-- **dry-run 预演**：执行前可预览将要同步的仓库列表，安全可控
+- **增量同步**：本地缓存已存在时自动切换为 `git fetch`，首次全量、后续增量
+- **子命令架构**：`config`、`list`、`sync` 子命令，降低使用门槛
+- **交互式配置**：`gitporter config` 引导式生成配置文件
+- **配置校验**：`config --validate` 三层校验（结构 → API 连通 → Git 连通）
+- **dry-run 预演**：执行前可预览将要同步的仓库列表
+- **交互式选择**：`sync --select` 带搜索、排序、范围选择的仓库选择器
+- **并发同步**：`sync --workers N` 多线程并行同步
+- **失败重试**：`sync --retry` 自动记录并重试失败仓库
+- **同步状态**：`list --status` 显示每个仓库的同步状态
 - **进度条**：同步过程实时显示进度、当前仓库、耗时
-- **仓库过滤**：`exclude_repos` 支持通配符批量排除仓库
-- **参数可配置**：`clone_args`、`push_args` 支持自定义 git 参数
-- **错误信息优化**：失败时输出具体原因，单个失败不影响整体
-- **项目结构重构**：模块解耦，便于维护和扩展
+- **密钥脱敏**：运行日志中 token 自动打码，不暴露敏感信息
+- **Docker 支持**：Dockerfile / docker-compose / CI 多架构自动构建
+- **仓库过滤**：`--filter`、`--exclude`、`--search`、`--repos` 多种过滤方式
+- **错误信息优化**：过滤 git 进度噪声，只显示真正的错误信息
 
 ## 致谢
 
