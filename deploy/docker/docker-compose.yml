@@ -1,0 +1,28 @@
+services:
+  gitporter:
+    build:
+      context: ../..        # 项目根目录
+      dockerfile: deploy/docker/Dockerfile
+    image: gitporter:latest
+    volumes:
+      # 配置文件（只读挂载，token 不进镜像）
+      - ../../config.yml:/app/config.yml:ro
+      # 增量同步缓存（持久化 bare 仓库，跨容器复用）
+      - ../../.gitporter:/app/.gitporter
+      # SSH Key（使用 SSH 模式时取消注释）
+      # - ~/.ssh:/root/.ssh:ro
+    # 默认执行 sync -y，也可在 docker run 时覆盖命令
+    # 例如：docker-compose run --rm gitporter list
+
+    # --- 定时同步示例（二选一）---
+    # 方案 1：使用 Docker restart 策略（适合简单场景）
+    #   restart: unless-stopped
+    #
+    # 方案 2：使用外部 cron（推荐，更灵活）
+    #   crontab -e 添加：
+    #   0 */6 * * * cd /path/to/GitPorter && docker compose run --rm gitporter sync -y
+    #
+    # 方案 3：使用 ofelia 等 cron 容器（适合多服务编排）
+    #   image: mcuadros/ofelia:latest
+    #   volumes:
+    #     - /var/run/docker.sock:/var/run/docker.sock

@@ -38,7 +38,6 @@ class Github(Git):
             except KeyError:
                 return False
             except Exception as e:
-                print(data)
                 raise RuntimeError(e)
 
     def create_repo(self, name: str, desc: str, is_private: bool) -> bool:
@@ -124,6 +123,5 @@ class Github(Git):
                     ][-1]["cursor"]
                     payload = {"query": query, "variables": variables}
                 except Exception as e:
-                    print(data)
                     raise RuntimeError(e)
         return all_repos
