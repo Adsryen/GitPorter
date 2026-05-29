@@ -1,6 +1,6 @@
 [project]
 name = "gitporter"
-version = "0.1.1"
+version = "1.0.0"
 description = "GitPorter 是一个 Git 代码仓批量迁移工具"
 readme = "README.md"
 requires-python = ">=3.8"
