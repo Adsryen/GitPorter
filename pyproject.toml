@@ -13,6 +13,9 @@ dependencies = [
 [project.scripts]
 gitporter = "gitporter.cli:main"
 
+[tool.setuptools.packages.find]
+include = ["gitporter*"]
+
 [[tool.uv.index]]
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 default = true
