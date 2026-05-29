@@ -38,6 +38,12 @@ def main():
                              help="Force full re-clone even if local cache exists")
     sync_parser.add_argument("--select", action="store_true",
                              help="Interactively select repos to sync (supports 1,3,5 or 3-8)")
+    sync_parser.add_argument("--retry", action="store_true",
+                             help="Only retry repos that failed in the last sync")
+    sync_parser.add_argument("--repos", dest="repos_pattern", default="",
+                             help="Comma-separated repo names to sync (e.g. 'repo1,repo2')")
+    sync_parser.add_argument("--workers", type=int, default=1,
+                             help="Number of parallel sync workers (default: 1)")
 
     list_parser = subparsers.add_parser("list", help="List repositories from source")
     list_parser.add_argument("-c", "--config", dest="cfg_file", default="./config.yml")
@@ -45,6 +51,12 @@ def main():
                              help="Only show repos matching pattern (e.g. 'test_*')")
     list_parser.add_argument("--exclude", dest="exclude_pattern", default="",
                              help="Exclude repos matching pattern (e.g. 'archived-*')")
+    list_parser.add_argument("--status", action="store_true",
+                             help="Show sync status (check if repos exist on target)")
+    list_parser.add_argument("--limit", type=int, default=0,
+                             help="Only show first N repos (0 = all)")
+    list_parser.add_argument("--search", dest="search_keyword", default="",
+                             help="Filter repos by keyword (substring match on name)")
 
     config_parser = subparsers.add_parser("config", help="Interactively generate config file")
     config_parser.add_argument("-c", "--config", dest="cfg_file", default="./config.yml",
@@ -67,11 +79,15 @@ def main():
         precheck()
         from gitporter.sync import run_sync
         run_sync(args.cfg_file, dry_run=args.dry_run, yes=args.yes,
-                 force_reclone=args.force_reclone, select=args.select)
+                 force_reclone=args.force_reclone, select=args.select,
+                 retry=args.retry, repos_pattern=args.repos_pattern,
+                 workers=args.workers)
 
     elif args.command == "list":
         from gitporter.commands.list_cmd import run_list
-        run_list(args.cfg_file, filter_pattern=args.filter_pattern, exclude_pattern=args.exclude_pattern)
+        run_list(args.cfg_file, filter_pattern=args.filter_pattern,
+                 exclude_pattern=args.exclude_pattern, status=args.status,
+                 limit=args.limit, search_keyword=args.search_keyword)
 
     elif args.command == "config":
         from gitporter.commands.config_cmd import run_config
