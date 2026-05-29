@@ -5,7 +5,6 @@ link: https://github.com/Adsryen/GitPorter.git
 import sys
 from gitporter.config import load_config, prepare_migrate
 from rich.console import Console
-from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn
 from rich.text import Text
 
@@ -50,20 +49,21 @@ def _parse_selection(text: str, max_index: int) -> set:
 
 
 def _select_repos(repos: list) -> list:
-    """显示带编号的仓库列表，让用户交互式选择。返回选中的仓库子集。"""
-    table = Table(show_lines=False, show_edge=False, pad_edge=False)
-    table.add_column("#", justify="right", style="dim", no_wrap=True)
-    table.add_column("仓库名", no_wrap=True)
-    table.add_column("说明", style="dim")
-    for i, repo in enumerate(repos, 1):
-        desc = repo.get("desc") or ""
-        table.add_row(str(i), repo["name"], desc[:50])
+    """显示带编号的仓库列表，支持排序切换和交互式选择。返回选中的仓库子集。"""
+    from gitporter.commands.list_cmd import _sort_repos, _SORT_MODES, _build_table
 
-    console.print(table)
-    console.print()
-    console.print("[dim]支持格式: 1,3,5  |  3-8  |  1,3-5,8  |  all  |  q 退出[/dim]")
+    sort_idx = 0
 
     while True:
+        mode, label = _SORT_MODES[sort_idx]
+        sorted_repos = _sort_repos(repos, mode)
+
+        console.clear()
+        console.print(_build_table(sorted_repos, label))
+        console.print()
+        console.print("[dim]  s 切换排序  |  输入序号选择  |  all 全选  |  q 退出[/dim]")
+        console.print("[dim]  支持: 1,3,5  |  3-8  |  1,3-5,8[/dim]")
+
         try:
             choice = input("\n选择要同步的仓库: ").strip()
         except (EOFError, KeyboardInterrupt):
@@ -71,15 +71,18 @@ def _select_repos(repos: list) -> list:
 
         if not choice or choice.lower() == "q":
             return []
+        if choice.lower() == "s":
+            sort_idx = (sort_idx + 1) % len(_SORT_MODES)
+            continue
         if choice.lower() == "all":
-            return repos
+            return sorted_repos
 
-        indices = _parse_selection(choice, len(repos))
+        indices = _parse_selection(choice, len(sorted_repos))
         if not indices:
             console.print("[yellow]输入无效，请重新输入。[/yellow]")
             continue
 
-        selected = [repos[i] for i in sorted(indices)]
+        selected = [sorted_repos[i] for i in sorted(indices)]
         console.print(f"\n已选择 {len(selected)} 个仓库:")
         for repo in selected:
             console.print(f"  • {repo['name']}")
