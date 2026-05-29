@@ -1,0 +1,161 @@
+# GitPorter 配置示例
+# 复制本文件为 config.yml，按需修改后运行：
+#   gitporter config --validate    # 校验配置是否有效
+#   gitporter sync                 # 开始同步
+#   gitporter sync --dry-run       # 预演模式，不实际执行
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  迁移配置
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+migrate:
+  # 源平台（下方 provider 配置的 key）
+  from: github
+  # 目标平台（下方 provider 配置的 key）
+  to: gitee
+
+  # 本地克隆缓存目录（留空默认为 .gitporter/）
+  clone_dir: ""
+
+  # git clone 额外参数（全局生效，也可在各 provider 下单独设置覆盖）
+  # clone_args:
+  #   - "--depth"
+  #   - "1"
+  #   - "--filter=blob:none"
+
+  # git push 额外参数
+  # push_args:
+  #   - "--force"
+
+  # 只迁移指定仓库（白名单，留空或注释则迁移全部）
+  # repos:
+  #   - repo_a
+  #   - repo_b
+
+  # 排除指定仓库（黑名单，支持通配符）
+  # * 匹配任意字符，? 匹配单个字符
+  #   "test_*"        排除所有 test_ 开头的仓库
+  #   "*_backup"      排除所有 _backup 结尾的仓库
+  #   "archived-*"    排除所有 archived- 开头的仓库
+  #   "my-repo"       精确排除某个仓库
+  # exclude_repos:
+  #   - test_*
+  #   - *_backup
+  #   - archived-*
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  Provider 通用字段说明
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#
+#  provider      平台标识（github / gitee / gitlab / gitea / coding / gf / e_gitee_v8）
+#  username      用户名（coding 的 e_gitee_v8 用 token_user 代替）
+#  token         平台 API Token
+#  base_api      API 基础地址
+#  ssh_prefix    SSH 地址前缀（use_https=false 时必填）
+#  https_prefix  HTTPS 地址前缀（use_https=true 时必填）
+#  use_https     true → HTTPS 模式（token 嵌入 URL 认证）
+#                false/留空 → SSH 模式（依赖 SSH Key 认证）
+#
+#  只用 HTTPS → 必须设置 use_https: true，并填写 https_prefix
+#  只用 SSH   → 不设置 use_https，填写 ssh_prefix
+#  两者都填   → 由 use_https 决定实际使用哪种
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  GitHub
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+github:
+  provider: github
+  base_api: https://api.github.com/graphql
+  ssh_prefix: git@github.com
+  https_prefix: https://github.com
+  username: "your-username"
+  # Personal Access Token (Settings → Developer settings → Personal access tokens)
+  token: "ghp_xxxxxxxxxxxx"
+  use_https: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  Gitee
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+gitee:
+  provider: gitee
+  base_api: https://gitee.com/api/v5
+  ssh_prefix: git@gitee.com
+  https_prefix: https://gitee.com
+  username: "your-username"
+  # 私人令牌（设置 → 私人令牌）
+  token: "your-token"
+  use_https: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  GitLab（取消注释以使用）
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# gitlab:
+#   provider: gitlab
+#   base_api: https://gitlab.com/api/v4
+#   ssh_prefix: git@gitlab.com
+#   https_prefix: https://gitlab.com
+#   username: "your-username"
+#   # Personal Access Token（Preferences → Access Tokens）
+#   token: "your-token"
+#   use_https: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  Gitea / Gogs（取消注释以使用）
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# gitea:
+#   provider: gitea
+#   base_api: https://your-gitea.com/api/v1
+#   ssh_prefix: git@your-gitea.com
+#   https_prefix: https://your-gitea.com
+#   username: "your-username"
+#   # Access Token（Settings → Applications → Access Tokens）
+#   token: "your-token"
+#   use_https: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  Coding（取消注释以使用）
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# coding:
+#   provider: coding
+#   base_api: https://{your-team}.coding.net
+#   ssh_prefix: git@e.coding.net
+#   https_prefix: https://e.coding.net
+#   username: "your-username"
+#   # 项目令牌（项目设置 → 开发者选项 → 项目令牌）
+#   token: "your-token"
+#   use_https: true
+#   # 是否为团队/组织账号
+#   is_org: false
+#   # 组织名（is_org=true 时必填）
+#   org_name: ""
+#   # 使用 Web API 获取仓库列表（部分 Coding 版本 API 限制较多时启用）
+#   use_web_api: false
+#   # Web Cookie（use_web_api=true 时必填，从浏览器抓取）
+#   web_cookie: ""
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  腾讯工蜂（取消注释以使用）
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# gf:
+#   provider: gf
+#   base_api: https://git.code.tencent.com/api/v3
+#   ssh_prefix: git@git.code.tencent.com
+#   https_prefix: https://git.code.tencent.com
+#   username: "your-username"
+#   # Access Token（个人设置 → 访问令牌）
+#   token: "your-token"
+#   use_https: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  云效 Codeup 企业版（取消注释以使用）
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# e_gitee_v8:
+#   provider: e_gitee_v8
+#   base_api: https://api.gitee.com/enterprises
+#   https_prefix: https://gitee.com
+#   # 企业 ID（企业主页 URL 中的数字）
+#   enterprise_id: "12345"
+#   # 用户名（用于 SSH 地址拼接）
+#   token_user: "your-username"
+#   # 企业私人令牌
+#   token: "your-token"
+#   use_https: true
