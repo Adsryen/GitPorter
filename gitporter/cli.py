@@ -42,9 +42,13 @@ def main():
                              help="Exclude repos matching pattern (e.g. 'archived-*')")
 
     config_parser = subparsers.add_parser("config", help="Interactively generate config file")
+    config_parser.add_argument("-c", "--config", dest="cfg_file", default="./config.yml",
+                               help="config file (default: ./config.yml)")
     config_parser.add_argument("-o", "--output", dest="output", default="./config.yml")
     config_parser.add_argument("--show", action="store_true",
                                help="Show current config (tokens masked)")
+    config_parser.add_argument("--validate", action="store_true",
+                               help="Validate config: structure, API and Git connectivity")
 
     args = parser.parse_args()
 
@@ -65,7 +69,11 @@ def main():
 
     elif args.command == "config":
         from gitporter.commands.config_cmd import run_config
-        run_config(args.output, show=args.show)
+        if args.validate:
+            from gitporter.commands.config_cmd import run_validate
+            run_validate(args.cfg_file)
+        else:
+            run_config(args.output, show=args.show, cfg_file=args.cfg_file)
 
 
 if __name__ == "__main__":
