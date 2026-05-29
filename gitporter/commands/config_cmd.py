@@ -105,12 +105,13 @@ def _mask(cfg: dict) -> dict:
     return masked
 
 
-def run_config(output: str, show: bool = False):
+def run_config(output: str, show: bool = False, cfg_file: str = ""):
     if show:
-        if not os.path.exists(output):
-            print(f"Config file not found: {output}")
+        path = cfg_file or output
+        if not os.path.exists(path):
+            print(f"Config file not found: {path}")
             return
-        with open(output) as f:
+        with open(path) as f:
             try:
                 from yaml import CLoader as Loader
             except ImportError:
@@ -152,3 +153,27 @@ def run_config(output: str, show: bool = False):
     with open(output, "w") as f:
         yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
     print(f"\n配置已写入: {output}")
+
+
+def run_validate(cfg_file: str):
+    from gitporter.config import validate_config
+    from rich.console import Console
+    from rich.panel import Panel
+
+    console = Console()
+    console.print(f"\n[bold]校验配置文件: {cfg_file}[/bold]\n")
+
+    errors, warnings = validate_config(cfg_file)
+
+    if warnings:
+        console.print(Panel("\n".join(f"[yellow]⚠[/yellow]  {w}" for w in warnings),
+                            title="[yellow]Warnings[/yellow]", border_style="yellow"))
+
+    if errors:
+        console.print(Panel("\n".join(f"[red]✗[/red]  {e}" for e in errors),
+                            title="[red]Errors[/red]", border_style="red"))
+        console.print("\n[red]配置校验未通过，请修复以上错误后再运行 sync。[/red]")
+    else:
+        console.print(Panel("[green]✓ 结构校验通过\n✓ API 连通性正常\n✓ Git 连通性正常[/green]",
+                            title="[green]All Checks Passed[/green]", border_style="green"))
+        console.print("\n[green]配置校验通过，可以运行 [bold]gitporter sync[/bold] 开始迁移。[/green]")
