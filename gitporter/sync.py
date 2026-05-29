@@ -37,7 +37,10 @@ def run_sync(cfg_file: str, dry_run: bool = False, yes: bool = False, force_recl
     # 非 TTY（CI 环境）跳过确认
     is_tty = sys.stdin.isatty()
     if not yes and is_tty:
-        if not _confirm(f"Sync {len(repos)} repos to target?"):
+        console.print(f"\n[bold]待同步仓库（{len(repos)} 个）:[/bold]")
+        for repo in repos:
+            console.print(f"  • {repo['name']}")
+        if not _confirm(f"\n确认同步以上仓库到目标平台？"):
             console.print("[yellow]Aborted.[/yellow]")
             return
 
