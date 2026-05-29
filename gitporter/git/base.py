@@ -9,6 +9,21 @@ import subprocess
 
 from gitporter.util import mask_auth_url
 
+# git --progress 输出的噪声行，用于过滤只保留真正的错误信息
+_GIT_PROGRESS_RE = re.compile(
+    r"^(Enumerating objects|Counting objects|Compressing objects|"
+    r"Writing objects|Receiving objects|Resolving deltas|"
+    r"Delta compression|remote:|Total |pack-reused|Everything up-to-date|"
+    r"\d+%|.*\d+/\d+\))", re.IGNORECASE
+)
+
+
+def _extract_git_error(stderr: str) -> str:
+    """从 git stderr 中提取真正的错误信息，过滤掉进度输出。"""
+    lines = stderr.strip().splitlines()
+    error_lines = [line for line in lines if line.strip() and not _GIT_PROGRESS_RE.match(line.strip())]
+    return "\n".join(error_lines) if error_lines else stderr.strip()
+
 
 class Git:
     provider = ""
@@ -117,7 +132,7 @@ class Git:
         if ret.returncode == 0:
             return repo_dir, "", "clone"
 
-        error_msg = ret.stderr.strip() if ret.stderr else f"git clone exited with code {ret.returncode}"
+        error_msg = _extract_git_error(ret.stderr) if ret.stderr else f"git clone exited with code {ret.returncode}"
         return None, mask_auth_url(error_msg), "clone"
 
     def _fetch_repo(self, repo_dir: str, remote_addr: str) -> tuple:
@@ -131,7 +146,7 @@ class Git:
         if ret.returncode == 0:
             return repo_dir, ""
 
-        error_msg = ret.stderr.strip() if ret.stderr else f"git fetch exited with code {ret.returncode}"
+        error_msg = _extract_git_error(ret.stderr) if ret.stderr else f"git fetch exited with code {ret.returncode}"
         return None, mask_auth_url(error_msg)
 
     def push_repo(self, repo_name: str, repo_dir: str, repo_owner: str = "") -> tuple:
@@ -152,7 +167,7 @@ class Git:
         if ret.returncode == 0:
             return True, ""
 
-        error_msg = ret.stderr.strip() if ret.stderr else f"git push exited with code {ret.returncode}"
+        error_msg = _extract_git_error(ret.stderr) if ret.stderr else f"git push exited with code {ret.returncode}"
         return False, mask_auth_url(error_msg)
 
     def list_repos(self) -> list:
