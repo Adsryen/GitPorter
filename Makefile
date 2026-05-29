@@ -1,7 +1,20 @@
 version =
+IMAGE_NAME ?= gitporter
 
 install:
 	pip install -e .
+
+docker-build:
+	docker build -t $(IMAGE_NAME):latest -f deploy/docker/Dockerfile .
+
+docker-run:
+	docker run --rm \
+		-v $(CURDIR)/config.yml:/app/config.yml:ro \
+		-v $(CURDIR)/.gitporter:/app/.gitporter \
+		$(IMAGE_NAME):latest
+
+docker-up:
+	docker compose -f deploy/docker/docker-compose.yml up --build --remove-orphans
 
 publish:
 	@if [ -z "$(version)" ]; then \

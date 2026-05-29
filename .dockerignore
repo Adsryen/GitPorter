@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.venv*
+build
+dist
+uv.lock
+
+# 本地缓存（不打入镜像，通过 volume 挂载）
+.gitporter/
+
+# 本地配置（不打入镜像，通过 volume 挂载）
+config.yml
+config-*.yml
+
+# 开发 & CI 文件
+.vscode
+.idea
+deploy/
+assets/
+*.md
+LICENSE

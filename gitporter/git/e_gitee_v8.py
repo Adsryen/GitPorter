@@ -3,6 +3,7 @@ author: Adsryen <prl1594959462@gmail.com>
 link: https://github.com/Adsryen/GitPorter.git
 """
 from gitporter.git.base import Git
+from gitporter.util import mask_secret
 import requests
 
 
@@ -35,7 +36,7 @@ class Gitee(Git):
                 if r.status_code != requests.codes.ok:
                     raise RuntimeError(r.content.decode("utf-8"))
                 
-                print(r.text)
+                print(mask_secret(r.text, self.token))
 
                 repos = r.json().get("data", [])
                 if len(repos) == 0:

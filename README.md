@@ -30,6 +30,7 @@ GitPorter 是一个 Git 代码仓批量迁移工具，支持在 GitHub、Gitee�
 | [Gogs](https://gogs.io/) | ✅ | ✅ |
 | [腾讯工蜂](https://code.tencent.com/) | ✅ | ✅ |
 | [Coding](https://coding.net/) | ✅ | ❌ |
+| [云效 Codeup](https://codeup.aliyun.com/) | ❌ | ❌ |
 | Bitbucket | ❌ | ❌ |
 
 > 迁移内容包括 commits、branches、tags，不包括 issues、PR、wiki。
@@ -57,6 +58,55 @@ pip install -e .
 git clone https://github.com/Adsryen/GitPorter.git
 cd GitPorter
 uv sync
+```
+
+### 方式四：Docker
+
+无需安装 Python 环境，只需挂载配置文件即可运行。
+
+**快速开始：**
+
+```bash
+# 构建镜像
+docker build -t gitporter -f deploy/docker/Dockerfile .
+
+# 执行同步（挂载配置文件和缓存目录）
+docker run --rm \
+  -v $(pwd)/config.yml:/app/config.yml:ro \
+  -v $(pwd)/.gitporter:/app/.gitporter \
+  gitporter sync -y
+```
+
+**使用 Docker Compose（推荐）：**
+
+```bash
+cd deploy/docker
+# 将 config.example.yml 复制为配置文件并填入你的 token
+cp config.example.yml ../../config.yml
+# 执行同步
+docker compose run --rm gitporter
+```
+
+**常用命令变体：**
+
+```bash
+# 列出源端仓库
+docker run --rm -v $(pwd)/config.yml:/app/config.yml:ro gitporter list
+
+# 预演模式
+docker run --rm -v $(pwd)/config.yml:/app/config.yml:ro gitporter sync --dry-run
+
+# 强制全量重新克隆
+docker run --rm \
+  -v $(pwd)/config.yml:/app/config.yml:ro \
+  -v $(pwd)/.gitporter:/app/.gitporter \
+  gitporter sync --force-reclone -y
+```
+
+**定时同步（配合 crontab）：**
+
+```cron
+0 2 * * * docker compose -f /path/to/deploy/docker/docker-compose.yml run --rm gitporter
 ```
 
 ## 快速开始

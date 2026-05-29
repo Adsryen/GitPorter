@@ -7,6 +7,8 @@ import re
 import shutil
 import subprocess
 
+from gitporter.util import mask_auth_url
+
 
 class Git:
     provider = ""
@@ -116,7 +118,7 @@ class Git:
             return repo_dir, "", "clone"
 
         error_msg = ret.stderr.strip() if ret.stderr else f"git clone exited with code {ret.returncode}"
-        return None, error_msg, "clone"
+        return None, mask_auth_url(error_msg), "clone"
 
     def _fetch_repo(self, repo_dir: str, remote_addr: str) -> tuple:
         """对已有 bare 仓库执行增量 fetch。Returns (repo_dir, error_msg)."""
@@ -130,7 +132,7 @@ class Git:
             return repo_dir, ""
 
         error_msg = ret.stderr.strip() if ret.stderr else f"git fetch exited with code {ret.returncode}"
-        return None, error_msg
+        return None, mask_auth_url(error_msg)
 
     def push_repo(self, repo_name: str, repo_dir: str, repo_owner: str = "") -> tuple:
         """Returns (success, error_msg). On success error_msg is empty."""
@@ -151,7 +153,7 @@ class Git:
             return True, ""
 
         error_msg = ret.stderr.strip() if ret.stderr else f"git push exited with code {ret.returncode}"
-        return False, error_msg
+        return False, mask_auth_url(error_msg)
 
     def list_repos(self) -> list:
         raise NotImplementedError

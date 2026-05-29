@@ -1,0 +1,68 @@
+# GitPorter Docker 配置示例
+# 使用方法：
+#   1. 复制本文件为 config.yml 并填入你的 token
+#   2. 通过 volume 挂载到容器内
+#
+# Docker 运行示例：
+#   docker run --rm -v $(pwd)/config.yml:/app/config.yml:ro gitporter sync -y
+#
+# Docker Compose 运行示例（在 deploy/docker/ 目录下）：
+#   docker compose run --rm gitporter
+
+migrate:
+  from: github
+  to: gitee
+  clone_dir: ""
+
+  # 只迁移指定仓库（白名单，取消注释并填写仓库名）
+  # repos:
+  #   - repo_a
+  #   - repo_b
+
+  # 排除指定仓库（黑名单，支持通配符）
+  # exclude_repos:
+  #   - test_*
+  #   - *_backup
+  #   - archived-*
+
+  # 浅克隆，节省容器内磁盘和时间
+  # clone_args:
+  #   - "--depth"
+  #   - "1"
+
+# ─── GitHub ───────────────────────────────────────────
+github:
+  provider: github
+  base_api: https://api.github.com/graphql
+  ssh_prefix: git@github.com
+  https_prefix: https://github.com
+  username: "your-username"
+  token: "ghp_xxxxxxxxxxxx"
+  use_https: true
+
+# ─── Gitee ────────────────────────────────────────────
+gitee:
+  provider: gitee
+  base_api: https://gitee.com/api/v5
+  ssh_prefix: git@gitee.com
+  https_prefix: https://gitee.com
+  username: "your-username"
+  token: "your-token"
+
+# ─── GitLab（取消注释以使用）───────────────────────────
+# gitlab:
+#   provider: gitlab
+#   base_api: https://gitlab.com/api/v4
+#   ssh_prefix: git@gitlab.com
+#   https_prefix: https://gitlab.com
+#   username: "your-username"
+#   token: "your-token"
+
+# ─── Gitea（取消注释以使用）────────────────────────────
+# gitea:
+#   provider: gitea
+#   base_api: https://your-gitea.com/api/v1
+#   ssh_prefix: git@your-gitea.com
+#   https_prefix: https://your-gitea.com
+#   username: "your-username"
+#   token: "your-token"
