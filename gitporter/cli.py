@@ -19,6 +19,9 @@ def main():
                "  gitporter sync --dry-run\n"
                "  gitporter list\n"
                "  gitporter config\n"
+               "  gitporter config --validate\n"
+               "\n"
+               "配置模板: cp config.yml.example config.yml"
     )
     parser.add_argument("-c", "--config", dest="cfg_file", default="./config.yml",
                         help="config file (default: ./config.yml)")

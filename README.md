@@ -81,8 +81,8 @@ docker run --rm \
 
 ```bash
 cd deploy/docker
-# 将 config.example.yml 复制为配置文件并填入你的 token
-cp config.example.yml ../../config.yml
+# 将 config.yml.example 复制为配置文件并填入你的 token
+cp config.yml.example ../../config.yml
 # 执行同步
 docker compose run --rm gitporter
 ```

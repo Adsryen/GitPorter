@@ -83,13 +83,13 @@ def prepare_migrate(cfg: dict):
 
 _REQUIRED_FIELDS = {
     "_common": ["provider", "token"],
-    "github":  ["username", "base_api", "ssh_prefix", "https_prefix"],
-    "gitee":   ["username", "base_api", "ssh_prefix", "https_prefix"],
-    "gitlab":  ["username", "base_api", "ssh_prefix", "https_prefix"],
-    "gitea":   ["username", "base_api", "ssh_prefix", "https_prefix"],
-    "gogs":    ["username", "base_api", "ssh_prefix", "https_prefix"],
-    "coding":  ["username", "base_api", "ssh_prefix", "https_prefix"],
-    "gf":      ["username", "base_api", "ssh_prefix", "https_prefix"],
+    "github":  ["username", "base_api", "https_prefix"],
+    "gitee":   ["username", "base_api", "https_prefix"],
+    "gitlab":  ["username", "base_api", "https_prefix"],
+    "gitea":   ["username", "base_api", "https_prefix"],
+    "gogs":    ["username", "base_api", "https_prefix"],
+    "coding":  ["username", "base_api", "https_prefix"],
+    "gf":      ["username", "base_api", "https_prefix"],
     "e_gitee_v8": ["token_user", "base_api", "https_prefix", "enterprise_id"],
 }
 
@@ -108,11 +108,14 @@ def _check_structure(name: str, cfg: dict, errors: list, warnings: list):
         if not cfg.get(field):
             errors.append(f"[{name}] 缺少必填字段: {field}")
 
-    if cfg.get("use_https") and not cfg.get("https_prefix"):
+    use_https = cfg.get("use_https", False)
+    ssh_prefix = cfg.get("ssh_prefix", "")
+
+    if use_https and not cfg.get("https_prefix"):
         errors.append(f"[{name}] use_https=true 但未配置 https_prefix")
 
-    if cfg.get("use_https") and not cfg.get("ssh_prefix"):
-        warnings.append(f"[{name}] use_https=true，ssh_prefix 未配置（回退 SSH 时不可用）")
+    if not use_https and not ssh_prefix:
+        warnings.append(f"[{name}] 未配置 ssh_prefix 且未启用 use_https，Git 操作将不可用")
 
 
 def _check_api(name: str, cfg: dict, errors: list):
