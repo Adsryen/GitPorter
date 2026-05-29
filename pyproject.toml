@@ -1,6 +1,6 @@
 [project]
 name = "gitporter"
-version = "1.0.1"
+version = "1.0.2"
 description = "Git 代码仓批量迁移 & 持续同步工具，支持 GitHub/Gitee/GitLab/Gitea/Coding 等平台"
 readme = "README.md"
 license = {file = "LICENSE"}
