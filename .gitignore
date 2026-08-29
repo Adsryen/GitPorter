@@ -9,3 +9,11 @@ dist
 config.yml
 config-*.yml
 .gitporter/
+
+# ai IDE
+.agents/
+.claude/
+.codex/
+.trae/
+.trellis/
+Agents.md
